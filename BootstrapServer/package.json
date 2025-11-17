@@ -1,0 +1,30 @@
+{
+  "name": "bootstrapserver",
+  "version": "1.0.0",
+  "description": "Bootstrapping node for SAFEY to join peers",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "start"
+  },
+  "keywords": [
+    "BOOTSTRAPPING",
+    "SAFEY"
+  ],
+  "author": "Yug00007",
+  "license": "ISC",
+  "dependencies": {
+    "@chainsafe/libp2p-noise": "^17.0.0",
+    "@chainsafe/libp2p-yamux": "^8.0.1",
+    "@libp2p/circuit-relay-v2": "^4.1.0",
+    "@libp2p/identify": "^4.0.7",
+    "@libp2p/kad-dht": "^16.1.0",
+    "@libp2p/webrtc": "^6.0.8",
+    "@libp2p/websockets": "^10.1.0",
+    "@multiformats/multiaddr": "^13.0.1",
+    "gun": "^0.2020.1241",
+    "libp2p": "^2.10.0",
+    "libp2p-mdns": "^0.18.0",
+    "webrtc": "^1.14.1"
+  }
+}
