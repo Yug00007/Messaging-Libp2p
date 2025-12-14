@@ -13,11 +13,13 @@ import { multiaddr } from '@multiformats/multiaddr'
 import P2PListener from './peerNode/node.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-
+import Store from 'electron-store'
 const __filename = fileURLToPath(import.meta.url);  // Current file's URL
 const __dirname = dirname(__filename); 
+// let friendList =[];
 // const Store = require('electron-store');
 
+let GlobalNode;
 // const schema = {
 // 	user: {
 // 		type: 'object',
@@ -87,17 +89,23 @@ const createWindow = () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
+let friendList;
+let store;
 app.whenReady().then(() => {
   createWindow();
-
+  store = new Store();
+  store.set('friendList', ['duck'])
+  friendList = store.get('friendList', friendList) || [];
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
+
     }
   });
 });
+
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -107,6 +115,8 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+
 
 ipcMain.handle("generateKeyPairs",(event, message)=>{
   console.log('ipcRenderer worked')  
@@ -118,22 +128,40 @@ ipcMain.handle("generateKeyPairs",(event, message)=>{
 })
 
 ipcMain.handle('get-variable', (event) => {
-  return { someVariable: 'Hello from main process' }; // Example data
+  return { someVariable: 'Hello from main process' }; // random test data
 });
-
+ipcMain.handle('add-friend', (event,message)=>{
+  friendList.push(message.username)
+  store.set('friendList', friendList)
+  return;
+})
 ipcMain.handle('get-friendlist', (event) => {
-  return { show: 'friendlist' }; // Example data
+  return friendList; // friendlist data in RAM
 });
+ipcMain.handle('send-message', (event,message) => {
+  return;
+});
+ipcMain.handle('start-node',async(event)=>{
+  try {
+    await startListener();
+    return 'Success';
+  } catch (error) {
+    console.log('IpcHandler gave error at Start-node',error);
+    return 'Failed';
+  }
+})
 const startListener = async () => {
   const listener = new P2PListener();
+
    await listener.start()
   try {
-    let friendAddr= [multiaddr('/ip4/127.0.0.1/tcp/61263/ws/p2p/12D3KooWLVc5DFYdRpBsVN4JKQn8BCXyAu6S6zUdKYYU1kVWJAbn/p2p-circuit/webrtc/p2p/12D3KooWNccPjdGaQhufuKShJYreVBPq9frCSB8UKr7De2Wd5Wzf')]
+    let friendAddr= [multiaddr('/ip4/127.0.0.1/tcp/54316/ws/p2p/12D3KooWHs54AZQp4pcp19cd6NXvqKGXPmgbyqDMozLHTZ4kxitc/p2p-circuit/webrtc/p2p/12D3KooWET26nZR1G5DjVLkda59dUgZHnLRGjowuao8uFxEfH3Xe')]
 
    await listener.dialFriend(friendAddr)
     await listener.sendMessage(friendAddr, 4)
+    await listener.listenForResponses()
     console.log('Listener started:', listener);
-
+     return listener
     // Use the listener for whatever you need
     // listener.startNode();  // If the listener object has a start method
   } catch (error) {
@@ -141,7 +169,7 @@ const startListener = async () => {
   }
 };
 
-startListener();
+GlobalNode = await startListener();
 // console.log(typeof(Listener.startNode))
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.

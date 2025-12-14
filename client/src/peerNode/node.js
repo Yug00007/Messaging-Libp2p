@@ -33,7 +33,7 @@ class P2PListener {
         this.friendList = ['meow', 'duck'];
         this.listener = null;
         this.relayAddress = [
-            multiaddr('/ip4/127.0.0.1/tcp/61263/ws/p2p/12D3KooWLVc5DFYdRpBsVN4JKQn8BCXyAu6S6zUdKYYU1kVWJAbn')
+            multiaddr('/ip4/127.0.0.1/tcp/15027/ws/p2p/12D3KooWLWTM8fiQhrP1ZDi3pBCih3esKpMYRkHgooEma59PWuDV')
         ];
     }
 
@@ -101,9 +101,9 @@ class P2PListener {
                     }
 
                     console.log('Received message:', message);
-                    const res = { reply: `You sent: ${message}` };
-                    await this.streamHandler.writeToStream(friendID, JSON.stringify(res));
-                    console.log(res);
+                    // const res = { reply: `You sent: ${message}` };
+                    // await this.streamHandler.writeToStream(friendID, JSON.stringify(res));
+                    // console.log(res);
                 }
             } catch (error) {
                 console.log('Error handling stream:', error);
@@ -165,7 +165,7 @@ class P2PListener {
 
         // Start the listener to handle incoming connections
         this.startListening();
-
+       
         // Optionally, you can also send messages and listen for responses here
         // await this.sendMessage(webRTCMultiaddr, 5);
         // await this.listenForResponses();

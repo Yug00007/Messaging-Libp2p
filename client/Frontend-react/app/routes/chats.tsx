@@ -19,15 +19,20 @@ function chats() {
       console.error("Electron API not available.");
     }
   }, []);
-  const [apiResponse, setApiResponse] = useState<any>(null);
-
+  const [apiResponse, setApiResponse] = useState<any>([]);
+  const [selectedDM, setSelectedDM] = useState<String | null>(null);
+  const [chat, setChat] = useState<any>([]);
+  useEffect(()=>{
+    
+  },[selectedDM])
   const handleInvokeApi = async () => {
     try {
+        // @ts-ignore
       if (window.api) {
            // @ts-ignore
         const response = await window.api.getFriendList();
         console.log('API response:', response);
-        setApiResponse(response.show);
+        setApiResponse(response);
       } else {
         console.error("Electron is not available.");
       }
@@ -42,12 +47,9 @@ function chats() {
         
         <ResizablePanelGroup direction="horizontal">
           {/* @ts-ignore */}
-        <ResizablePanel className='m-4'>One       <button onClick={handleInvokeApi}>Invoke API</button>
+        <ResizablePanel className='m-4'>One       <button onClick={handleInvokeApi}>Refresh DMs</button>
       {apiResponse && (
-        <div>
-          <h2>API Response:</h2>
-          <pre>{JSON.stringify(apiResponse, null, 2)}</pre>
-        </div>
+        apiResponse.map((item : string,index : number)=>(<div onClick={()=>{setSelectedDM(item)}} key={index}>{item}</div>))
       )}</ResizablePanel>
         <ResizableHandle className='border-2 ' />
         <ResizablePanel className='m-4'>
