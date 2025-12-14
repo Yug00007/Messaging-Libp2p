@@ -23,18 +23,19 @@ const REQ_RESP_PROTOCOL = '/test-message-proto/1.0.0'
 
 const streamHandler = new StreamHandler();
 
-// let gun = Gun() // add relay later
+
 let username= 'test'
 
 class P2PListener {
-    constructor(username) {
+    constructor(username = 'test') {
         this.username = username;
         this.streamHandler = new StreamHandler();
         this.friendList = ['meow', 'duck'];
         this.listener = null;
         this.relayAddress = [
-            multiaddr('/ip4/127.0.0.1/tcp/15027/ws/p2p/12D3KooWLWTM8fiQhrP1ZDi3pBCih3esKpMYRkHgooEma59PWuDV')
+            multiaddr('/ip4/127.0.0.1/tcp/58285/ws/p2p/12D3KooWHZxJgimLZtxY5jnnPbDNJkZ1fvJeyEsTP2W5JEkiGwJ5')
         ];
+        this.gun = gun() // add relay later
     }
 
     // Method to create and set up the listener
@@ -160,8 +161,8 @@ class P2PListener {
         console.log('WebRTC Multiaddr:', webRTCMultiaddr);
 
         // Register the username and address in Gun
-        // gun.get('users').get(this.username).put(webRTCMultiaddr);
-        // gun.get('PeerID').get(multiaddr(webRTCMultiaddr).getPeerId()).put(this.username);
+        this.gun.get('users').get(this.username).put(webRTCMultiaddr);
+        this.gun.get('PeerID').get(multiaddr(webRTCMultiaddr).getPeerId()).put(this.username);
 
         // Start the listener to handle incoming connections
         this.startListening();
