@@ -155,7 +155,7 @@ const startListener = async () => {
 
    await listener.start()
   try {
-    let friendAddr= [multiaddr('/ip4/127.0.0.1/tcp/54316/ws/p2p/12D3KooWHs54AZQp4pcp19cd6NXvqKGXPmgbyqDMozLHTZ4kxitc/p2p-circuit/webrtc/p2p/12D3KooWET26nZR1G5DjVLkda59dUgZHnLRGjowuao8uFxEfH3Xe')]
+    let friendAddr= [multiaddr('/ip4/127.0.0.1/tcp/58285/ws/p2p/12D3KooWHZxJgimLZtxY5jnnPbDNJkZ1fvJeyEsTP2W5JEkiGwJ5/p2p-circuit/webrtc/p2p/12D3KooWGv17sZGCH5bJKrmeYJ7o2ntt3dt9YugZBJbHE7w3kGop')]
 
    await listener.dialFriend(friendAddr)
     await listener.sendMessage(friendAddr, 4)

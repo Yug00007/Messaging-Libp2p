@@ -96,7 +96,7 @@ class P2PListener {
 
                 while (true) {
                     const message = await this.streamHandler.readFromAllStreams();
-                    if (message === undefined) {
+                    if (message === undefined || message.length ==0) {
                         console.log('Stream stopped');
                         break;
                     }
@@ -145,6 +145,8 @@ class P2PListener {
                 }
                 if (res.length > 0) {
                     console.log('Received response:', res);
+                }else{
+                    break;
                 }
             }
         } catch (error) {
