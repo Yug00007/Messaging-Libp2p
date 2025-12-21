@@ -1,6 +1,12 @@
 import { lpStream } from 'it-length-prefixed-stream'
 import {byteStream} from 'it-byte-stream'
 // import { byteStream } from 'it-byte-stream'
+
+function timeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 class StreamHandler{
   constructor(){
     this.streams = {}; // Use an object to map stream IDs to streams
@@ -16,7 +22,14 @@ class StreamHandler{
     if(unwrappedStream && unwrappedStream.duplexStream) console.log('can be destroyed')
     // UnwrappedStream.closeWrite();
   if(unwrappedStream!=undefined) console.log('atleast stream exists')
-  console.log(unwrappedStream);
+
+
+
+  // console.log(unwrappedStream); // This was to check read-write status earlier. Uncomment when debugging read write status of stream
+
+
+
+
     // const UnwrappedStream= wrappedStream.unwrap();
     //closing unwrapped stream by close() from AbstractStream class's utils. To destroy stream when no Bytes left to read.
     unwrappedStream.close({signal: AbortSignal.timeout(400)})
@@ -80,7 +93,8 @@ class StreamHandler{
       }
 
     } catch (error) {
-      console.log("reading issue in streamHandler", error)
+      // console.log("reading issue in streamHandler", error)
+      await timeout(1000)
       this.stopStream(stream);
       exitFlag=1;
     }

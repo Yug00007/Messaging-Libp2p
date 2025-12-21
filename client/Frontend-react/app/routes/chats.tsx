@@ -40,6 +40,11 @@ function chats() {
       console.error('Error invoking API:', error);
     }
   };
+  async function sendMessage(friend :String, message: String){
+    console.log('function called to sendMessage')
+    // @ts-ignore
+    await window.api.sendMessage(friend,message)
+  }
 
   return (
     <div className='text-accent h-full'>
@@ -49,13 +54,14 @@ function chats() {
           {/* @ts-ignore */}
         <ResizablePanel className='m-4'>One       <button onClick={handleInvokeApi}>Refresh DMs</button>
       {apiResponse && (
-        apiResponse.map((item : string,index : number)=>(<div onClick={()=>{setSelectedDM(item)}} key={index}>{item}</div>))
+        apiResponse.map((item : String,index : number)=>(<div onClick={()=>{setSelectedDM(item)}} key={index}>{item}</div>))
       )}</ResizablePanel>
         <ResizableHandle className='border-2 ' />
         <ResizablePanel className='m-4'>
            <ChatNav/>
            <ScrollArea className='border-2 h-[65%] '>
             <ChatMessages/> 
+            <button onClick={()=>{sendMessage('meow', 'test message to meow1')}}> click to send test message to "meow"</button>
            </ScrollArea>
            
         </ResizablePanel>

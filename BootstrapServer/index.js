@@ -19,10 +19,14 @@ import { peerIdFromString } from '@libp2p/peer-id'
 import last from 'it-last'
 import { multiaddr } from '@multiformats/multiaddr'
 import StreamHandler from './StreamHandler.js';
-
+import Gun from 'gun';
+import http from 'http'
 const REQ_RESP_PROTOCOL = '/test-message-proto/1.0.0'
 
 const streamHandler = new StreamHandler();
+
+ const server = http.createServer().listen(8100);
+ const gun = new Gun({web: server})
 // the relay server listens on a transport dialable by the listener and the
 // dialer, and has a relay service configured
 const relay = await createLibp2p({

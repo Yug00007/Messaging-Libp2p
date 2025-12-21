@@ -22,20 +22,17 @@ import StreamHandler from './StreamHandler.js';
 const REQ_RESP_PROTOCOL = '/test-message-proto/1.0.0'
 
 const streamHandler = new StreamHandler();
-
-
-let username= 'test'
-
+function timeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 class P2PListener {
-    constructor(username = 'test') {
+    constructor(username = 'test', relayAddress) {
         this.username = username;
         this.streamHandler = new StreamHandler();
         this.friendList = ['meow', 'duck'];
         this.listener = null;
-        this.relayAddress = [
-            multiaddr('/ip4/127.0.0.1/tcp/58285/ws/p2p/12D3KooWHZxJgimLZtxY5jnnPbDNJkZ1fvJeyEsTP2W5JEkiGwJ5')
-        ];
-        this.gun = gun() // add relay later
+        this.relayAddress =relayAddress
+        this.gun = gun({peers: ['http://localhost:8100:/gun']}); // relay server http link
     }
 
     // Method to create and set up the listener
@@ -97,6 +94,7 @@ class P2PListener {
                 while (true) {
                     const message = await this.streamHandler.readFromAllStreams();
                     if (message === undefined || message.length ==0) {
+                        await timeout(3000)
                         console.log('Stream stopped');
                         break;
                     }
@@ -115,6 +113,7 @@ class P2PListener {
     // Method to dial a friend by their WebRTC address
     async dialFriend(friendAddr) {
         try {
+            // console.log('dial req addrr of fr', friendAddr)
             const stream = await this.listener.dialProtocol(friendAddr, REQ_RESP_PROTOCOL, {
                 signal: AbortSignal.timeout(5000),
             });
@@ -132,6 +131,15 @@ class P2PListener {
             await this.streamHandler.writeToStream(friendAddr, `${i}`);
             console.log(`Sent message ${i}`);
         }
+    }
+    async sendMsg(friendAddr, message) {
+        console.log('recieved here as:',message)
+        const stream = await this.dialFriend(friendAddr);
+        // for (let i = 0; i < messageCount; i++) {
+        //     await this.streamHandler.writeToStream(friendAddr, `${i}`);
+        //     console.log(`Sent message ${i}`);
+        // }
+        await this.streamHandler.writeToStream(friendAddr, message)
     }
 
     // Method to listen for incoming responses from streams
@@ -158,15 +166,16 @@ class P2PListener {
     async start() {
         await this.createListener();
         await this.dialRelay();
-
+        console.log('looking for webrtc')
         const webRTCMultiaddr = await this.waitForWebRTC();
         console.log('WebRTC Multiaddr:', webRTCMultiaddr);
 
         // Register the username and address in Gun
-        this.gun.get('users').get(this.username).put(webRTCMultiaddr);
+        this.gun.get('users').get(this.username).put(webRTCMultiaddr.toString());
         this.gun.get('PeerID').get(multiaddr(webRTCMultiaddr).getPeerId()).put(this.username);
 
         // Start the listener to handle incoming connections
+        console.log('added in db')
         this.startListening();
        
         // Optionally, you can also send messages and listen for responses here

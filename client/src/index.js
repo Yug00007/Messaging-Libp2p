@@ -14,12 +14,16 @@ import P2PListener from './peerNode/node.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import Store from 'electron-store'
+import { fromString } from 'uint8arrays';
+
 const __filename = fileURLToPath(import.meta.url);  // Current file's URL
 const __dirname = dirname(__filename); 
 // let friendList =[];
+import Gun from 'gun';
+const gun = new Gun({peers: ['http://localhost:8100:/gun']});
 // const Store = require('electron-store');
 
-let GlobalNode;
+// let GlobalNode;
 // const schema = {
 // 	user: {
 // 		type: 'object',
@@ -91,6 +95,7 @@ const createWindow = () => {
 // Some APIs can only be used after this event occurs.
 let friendList;
 let store;
+let GlobalNodePromise;
 app.whenReady().then(() => {
   createWindow();
   store = new Store();
@@ -98,6 +103,7 @@ app.whenReady().then(() => {
   friendList = store.get('friendList', friendList) || [];
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
+  GlobalNodePromise = startListener();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -138,7 +144,16 @@ ipcMain.handle('add-friend', (event,message)=>{
 ipcMain.handle('get-friendlist', (event) => {
   return friendList; // friendlist data in RAM
 });
-ipcMain.handle('send-message', (event,message) => {
+ipcMain.handle('send-message', async(event,friend, message) => {
+    let friendAddr;
+   gun.get("users").get(friend).once((data)=>{
+    console.log(data)
+   friendAddr= multiaddr(data)
+  //  return friendAddr
+  })
+     const GlobalNode = await GlobalNodePromise
+  await GlobalNode.sendMsg(friendAddr, message);
+ await GlobalNode.listenForResponses()
   return;
 });
 ipcMain.handle('start-node',async(event)=>{
@@ -151,16 +166,22 @@ ipcMain.handle('start-node',async(event)=>{
   }
 })
 const startListener = async () => {
-  const listener = new P2PListener();
-
+  const listener = new P2PListener('meow', [multiaddr('/ip4/127.0.0.1/tcp/46954/ws/p2p/12D3KooWQNmpcrXGRhRicJmZeLzhKF6hNtddHGhBqxFf4CU9cXQW')]);
+  
+  let friendAddr;
+   gun.get("users").get("meow1").once((data)=>{
+    console.log(data)
+   friendAddr= multiaddr(data)
+    // return data
+  })
    await listener.start()
   try {
-    let friendAddr= [multiaddr('/ip4/127.0.0.1/tcp/58285/ws/p2p/12D3KooWHZxJgimLZtxY5jnnPbDNJkZ1fvJeyEsTP2W5JEkiGwJ5/p2p-circuit/webrtc/p2p/12D3KooWGv17sZGCH5bJKrmeYJ7o2ntt3dt9YugZBJbHE7w3kGop')]
-
-   await listener.dialFriend(friendAddr)
-    await listener.sendMessage(friendAddr, 4)
+    // let friendAddr= [multiaddr('/ip4/127.0.0.1/tcp/13317/ws/p2p/12D3KooWQzarvF9AYwJUGfL4jx3iXoRyJHk3xtskXFMLCBM6HX2T/p2p-circuit/webrtc/p2p/12D3KooWAktrVp16UxJuPA4MCYPaVyuZuV7bTTZTxWw663QBKfwr')]
+  //   console.log(friendAddr)
+  //  await listener.dialFriend(friendAddr)
+    await listener.sendMsg(friendAddr, 4)
     await listener.listenForResponses()
-    console.log('Listener started:', listener);
+    // console.log('Listener started:', listener);
      return listener
     // Use the listener for whatever you need
     // listener.startNode();  // If the listener object has a start method
@@ -169,7 +190,7 @@ const startListener = async () => {
   }
 };
 
-GlobalNode = await startListener();
+// GlobalNode = await startListener();
 // console.log(typeof(Listener.startNode))
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.

@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld('api',
     generateKeyPairs: (...args) => ipcRenderer.invoke('generateKeyPairs',...args),
     getFriendList: ()=> ipcRenderer.invoke('get-friendlist'),
     addFriend: ()=> ipcRenderer.invoke('add-friend', ...args),
-    sendMessage: ()=> ipcRenderer.invoke('send-message', ...args),
+    sendMessage: (...args)=> ipcRenderer.invoke('send-message', ...args),
     startNode: ()=> ipcRenderer.invoke('start-node'),
     onMessage: (channel, callback) => {
     ipcRenderer.on(channel, (event, data) => {
