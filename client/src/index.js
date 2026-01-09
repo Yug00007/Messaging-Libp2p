@@ -188,14 +188,13 @@ const startListener = async (mainProcess) => {
   //   console.log(friendAddr)
   //  await listener.dialFriend(friendAddr)
     await listener.sendMsg(friendAddr, 4)
-  if (mainProcess.webContents.isLoading()) {
+    
+    // this thing is useless but purely for debugging later or super rare edge case
     mainProcess.webContents.once('did-finish-load', () => {
       console.log('mainProcess loaded');
       listener.listenForResponses(mainProcess);
     });
-  } else {
-    listener.listenForResponses(mainProcess);
-  }
+
    
     // console.log('Listener started:', listener);
 
