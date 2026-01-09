@@ -69,7 +69,7 @@ function generateKeyPairs() {
 
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+ const mainWindow = new BrowserWindow({
     width: 980,
     height: 600,
     webPreferences: {
@@ -88,7 +88,9 @@ const createWindow = () => {
  }
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+ return mainWindow
 };
+
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -96,14 +98,17 @@ const createWindow = () => {
 let friendList;
 let store;
 let GlobalNodePromise;
-app.whenReady().then(() => {
-  createWindow();
+var listener
+let mainProcess
+app.whenReady().then(async() => {
+ mainProcess= createWindow();
   store = new Store();
-  store.set('friendList', ['duck'])
-  friendList = store.get('friendList', friendList) || [];
+  await store.set('friendList', ['duck'])
+  friendList = await store.get('friendList', friendList) || [];
+  
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  GlobalNodePromise = startListener();
+   await startListener(mainProcess);
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -128,6 +133,7 @@ ipcMain.handle("generateKeyPairs",(event, message)=>{
   console.log('ipcRenderer worked')  
   const data =  generateKeyPairs();
   console.log(data)
+  mainProcess.webContents.send('test', 'Works')
   if(data) return JSON.stringify(data);
   else null
   // event.sender.send('recieveKeyPairs', { keyPair: data });
@@ -151,38 +157,50 @@ ipcMain.handle('send-message', async(event,friend, message) => {
    friendAddr= multiaddr(data)
   //  return friendAddr
   })
-     const GlobalNode = await GlobalNodePromise
-  await GlobalNode.sendMsg(friendAddr, message);
- await GlobalNode.listenForResponses()
+  // const GlobalNode =  GlobalNodePromise
+  await listener.sendMsg(friendAddr, message);
+//  await GlobalNode.listenForResponses()
   return;
 });
 ipcMain.handle('start-node',async(event)=>{
   try {
-    await startListener();
+    await startListener(mainProcess);
     return 'Success';
   } catch (error) {
     console.log('IpcHandler gave error at Start-node',error);
     return 'Failed';
   }
 })
-const startListener = async () => {
-  const listener = new P2PListener('meow', [multiaddr('/ip4/127.0.0.1/tcp/46954/ws/p2p/12D3KooWQNmpcrXGRhRicJmZeLzhKF6hNtddHGhBqxFf4CU9cXQW')]);
+
+const startListener = async (mainProcess) => {
+   listener = new P2PListener('meow1', [multiaddr('/ip4/127.0.0.1/tcp/56188/ws/p2p/12D3KooWBDP72qbrrNE3wi4exAMwwkfztd8RuBXQWmhPHCKPGsB6')]);
   
   let friendAddr;
-   gun.get("users").get("meow1").once((data)=>{
+   gun.get("users").get("meow").once((data)=>{
     console.log(data)
    friendAddr= multiaddr(data)
     // return data
   })
-   await listener.start()
+   await listener.start(mainProcess)
+  
   try {
     // let friendAddr= [multiaddr('/ip4/127.0.0.1/tcp/13317/ws/p2p/12D3KooWQzarvF9AYwJUGfL4jx3iXoRyJHk3xtskXFMLCBM6HX2T/p2p-circuit/webrtc/p2p/12D3KooWAktrVp16UxJuPA4MCYPaVyuZuV7bTTZTxWw663QBKfwr')]
   //   console.log(friendAddr)
   //  await listener.dialFriend(friendAddr)
     await listener.sendMsg(friendAddr, 4)
-    await listener.listenForResponses()
+  if (mainProcess.webContents.isLoading()) {
+    mainProcess.webContents.once('did-finish-load', () => {
+      console.log('mainProcess loaded');
+      listener.listenForResponses(mainProcess);
+    });
+  } else {
+    listener.listenForResponses(mainProcess);
+  }
+   
     // console.log('Listener started:', listener);
-     return listener
+
+    //  return listener
+
     // Use the listener for whatever you need
     // listener.startNode();  // If the listener object has a start method
   } catch (error) {

@@ -42,14 +42,25 @@ export default function dashboard() {
 
 //  && typeof window.api.sendMessage === 'function'
 const generateKeyPairs= async()=> {
-
+  // @ts-ignore
  const data= await window.api.generateKeyPairs("test");
   console.log(data);
   // window.api.onMessage("recieveKeyPairs", (data: any)=>{
   //   console.log(data);
   // })
 }
+// @ts-ignore
 
+    useEffect(()=>{
+      // @ts-ignore
+      window.api.test((data)=>{
+        console.log(data)
+      })
+        // @ts-ignore
+        window.api.onMessage((data)=>{
+            console.log(data)
+          })
+    },[])
   return(
     <>
       <div className="flex flex-1 flex-col items-center w-full">

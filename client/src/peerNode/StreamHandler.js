@@ -40,12 +40,15 @@ class StreamHandler{
         console.log(`Removing streamID: ${streamID}`);
         delete this.streams[streamID];  // Removed the stream from the object
       }
-    console.log('closed stream')
+    // console.log('closed stream')
   }
 
   // Write to a specific stream based on the streamId
   async writeToStream(streamId, data){
     if (this.streams[streamId]) {
+        if (typeof data === 'object') {
+            data = JSON.stringify(data);
+        }
       await this.streams[streamId].write(new TextEncoder().encode(data));
       return console.log(`Data written to stream ${streamId}: ${data}`);
     } else {
@@ -75,28 +78,36 @@ class StreamHandler{
 
   // Read from all streams concurrently
   async readFromAllStreams(){
-    let exitFlag =0;
+    // let exitFlag =0;
     // while(true){
     const readPromises = Object.values(this.streams).map(async (stream) => {
       console.log("reading...")
-      if(!stream){ console.log('stream closed'); return;}
+      if(!stream || stream == undefined){ console.log('stream closed'); return;}
       // console.log(stream.status)
       
     try {
-      const res = await stream.read({signal: AbortSignal.timeout(1000)});
+      const res = await stream.read({signal: AbortSignal.timeout(5000)});
       if(res==undefined|| !res){ console.log('undefined data'); return;}
       else{
-        const fres= JSON.parse(new TextDecoder().decode(res.subarray()));
+        const f1 = new TextDecoder().decode(res.subarray())
+        // console.log(f1)
+        if (typeof f1 === 'object') { // this does nothing btw, as f1 will always be string. so format it for some json string use case shit
+            const fres= JSON.parse(f1);
+            return fres;
+        }
+        const fres = f1
         console.log(fres)
-        if(fres[0]==undefined) exitFlag=1
+        if(fres[0]==undefined || fres == undefined ) console.log('undefined fres in read all stream func')
         return fres;
       }
 
     } catch (error) {
       // console.log("reading issue in streamHandler", error)
+      console.log('readFromAllstream is stopping stream')
+      // console.log(error)
       await timeout(1000)
       this.stopStream(stream);
-      exitFlag=1;
+      
     }
     
     });

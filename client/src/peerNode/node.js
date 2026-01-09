@@ -82,7 +82,7 @@ class P2PListener {
     }
 
     // Method to handle incoming requests and stream
-    async handleStream() {
+    async handleStream(mainProcess) {
         await this.listener.handle(REQ_RESP_PROTOCOL, async ({ connection, stream, protocol }) => {
             try {
                 let remoteAddr = connection.remoteAddr;
@@ -100,6 +100,7 @@ class P2PListener {
                     }
 
                     console.log('Received message:', message);
+                    mainProcess.webContents.send('message', message)
                     // const res = { reply: `You sent: ${message}` };
                     // await this.streamHandler.writeToStream(friendID, JSON.stringify(res));
                     // console.log(res);
@@ -143,7 +144,7 @@ class P2PListener {
     }
 
     // Method to listen for incoming responses from streams
-    async listenForResponses() {
+    async listenForResponses(mainProcess) {
         try {
             while (true) {
                 const res = await this.streamHandler.readFromAllStreams();
@@ -153,6 +154,7 @@ class P2PListener {
                 }
                 if (res.length > 0) {
                     console.log('Received response:', res);
+                    mainProcess.webContents.send('message', res)
                 }else{
                     break;
                 }
@@ -163,7 +165,7 @@ class P2PListener {
     }
 
     // Start the listener and begin background tasks
-    async start() {
+    async start(mainProcess) {
         await this.createListener();
         await this.dialRelay();
         console.log('looking for webrtc')
@@ -176,7 +178,7 @@ class P2PListener {
 
         // Start the listener to handle incoming connections
         console.log('added in db')
-        this.startListening();
+        this.startListening(mainProcess);
        
         // Optionally, you can also send messages and listen for responses here
         // await this.sendMessage(webRTCMultiaddr, 5);
@@ -184,11 +186,11 @@ class P2PListener {
     }
 
     // This method will handle stream events in the background continuously
-    startListening() {
+    startListening(mainProcess) {
         (async () => {
             try {
                 // Continuously handle incoming streams
-                await this.handleStream();
+                await this.handleStream(mainProcess);
             } catch (error) {
                 console.log('Error in startListening:', error);
             }

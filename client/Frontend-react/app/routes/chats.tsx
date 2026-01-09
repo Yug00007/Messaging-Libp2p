@@ -23,8 +23,16 @@ function chats() {
   const [selectedDM, setSelectedDM] = useState<String | null>(null);
   const [chat, setChat] = useState<any>([]);
   useEffect(()=>{
-    
-  },[selectedDM])
+    // @ts-ignore
+    window.api.onMessage((data)=>{
+      console.log(data)
+      for(const texts of data){
+        if(texts != undefined){
+          setChat((prev: any)=> [...prev,texts])
+        }
+      }
+    })
+  },[])
   const handleInvokeApi = async () => {
     try {
         // @ts-ignore
@@ -60,7 +68,13 @@ function chats() {
         <ResizablePanel className='m-4'>
            <ChatNav/>
            <ScrollArea className='border-2 h-[65%] '>
-            <ChatMessages/> 
+            {chat.map((text: String, index:any) => (
+                // < key={index}>
+                //   {text}
+                // </div>
+                       <ChatMessages message={text} key={index}/> 
+            ))}
+     
             <button onClick={()=>{sendMessage('meow', 'test message to meow1')}}> click to send test message to "meow"</button>
            </ScrollArea>
            

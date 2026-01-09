@@ -12,11 +12,18 @@ contextBridge.exposeInMainWorld('api',
     addFriend: ()=> ipcRenderer.invoke('add-friend', ...args),
     sendMessage: (...args)=> ipcRenderer.invoke('send-message', ...args),
     startNode: ()=> ipcRenderer.invoke('start-node'),
-    onMessage: (channel, callback) => {
-    ipcRenderer.on(channel, (event, data) => {
+    onMessage: (callback) => {
+    ipcRenderer.on('message', (event, data) => {
       callback(data);
     });
-  },
+   },
+
+  test: (callback) => {
+      ipcRenderer.on('test', (event, data) => {
+        callback(data);
+      });
+    },
+    
   }
 )
 console.log('API exposed');
